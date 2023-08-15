@@ -14,9 +14,9 @@ april.ayres@hashicorp.com
 
 ## 👋 My history with Go + WebAssembly
 
-- Started dabbling in WASM late 2020.
+- Started dabbling in Wasm late 2020.
 - Looking to put Go code on the web for a LOGO programming interpreter. 🐢
-- Ported an apple II emulator core I maintain to WASM, and had 15 minutes of fame on [Gizmodo](https://gizmodo.com/you-can-now-revisit-the-most-popular-desktop-publishing-1847318273) for making [Apple II print shop](https://theprintshop.club/) run in a browser. 
+- Ported an apple II emulator core I maintain to Wasm, and had 15 minutes of fame on [Gizmodo](https://gizmodo.com/you-can-now-revisit-the-most-popular-desktop-publishing-1847318273) for making [Apple II print shop](https://theprintshop.club/) run in a browser. 
 
 .image images/wasmps.png _ 256
 
@@ -31,7 +31,7 @@ A simple Wasm program in Go: -
 - Well, yes. 
 
 
-## 🛠️ Building Go programs using the WASM Target
+## 🛠️ Building Go programs using the Wasm Target
 
 - Mostly the same as normal, but we need to tell Go we are building Wasm: -
 
@@ -94,7 +94,7 @@ Using [syscall/js](https://pkg.go.dev/syscall/js) gives us the ability to: -
 - Call Go functions from JavaScript.
 - Copy byte slices between JavaScript and Go.
 
-## Interacting with the DOM from Go
+## 🧱 Interacting with the DOM from Go
 
 `js.Global()` gives us access to the global javascript object. This and other values are represented by the `js.Value` type.
 
@@ -123,7 +123,7 @@ What does this do?
 ## 💭 Some final thoughts
 
 - When calling into Go from JavaScript, you are blocking the browser thread, so use a goroutine, or keep calls short. 
-- [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) provide an excellent way to execute a core service in WASM, with UI logic handled in JavaScript/TypeScript. It's possible then to communicate between the Wasm worker and the UI using [postMessage and a message eventListener](https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage). 
+- [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) provide an excellent way to execute a core service in Wasm, with UI logic handled in JavaScript/TypeScript. It's possible then to communicate between the Wasm worker and the UI using [postMessage and a message eventListener](https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage). 
 - Wasm binaries can be quite large, so be sure to serve them with compression enabled. 
 - [TinyGo](https://tinygo.org) might be an option in some cases and has [some interesting language additions](https://tinygo.org/docs/guides/webassembly/wasm) to simplify export of functions.
 - Recently, a [profiler for WebAssembly](https://github.com/stealthrocket/wzprof) in Go was released.
@@ -134,6 +134,6 @@ What does this do?
 - [TinyGo WebAssembly Guide](https://tinygo.org/docs/guides/webassembly/)
 - [Using Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
 - [Configuring fetch options while using net/http](https://github.com/golang/go/wiki/WebAssembly#configuring-fetch-options-while-using-nethttp)
-- [WebAssembly Debugging Subgroup](https://github.com/WebAssembly/debugging) - Discussing a standard for debugging WASM.
-- [WebAssembly Code Explorer](https://wasdk.github.io/wasmcodeexplorer) - Allow visualizing of WASM structure.
+- [WebAssembly Debugging Subgroup](https://github.com/WebAssembly/debugging) - Discussing a standard for debugging Wasm.
+- [WebAssembly Code Explorer](https://wasdk.github.io/wasmcodeexplorer) - Allow visualizing of Wasm structure.
 
