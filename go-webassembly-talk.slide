@@ -1,0 +1,139 @@
+# Go WebAssembly: A cooks tour
+
+April Ayres
+15 August 2023
+april.ayres@hashicorp.com
+
+## 🤔 What's all that about?
+
+.image images/gowasm.png _ 300
+
+- WebAssembly (abbreviated Wasm) is a binary instruction format for a stack-based virtual machine. 
+- Wasm is designed as a portable compilation target for programming languages, enabling deployment on the web for client and server applications.
+- Go added experimental support for WebAssembly in 1.11
+
+## 👋 My history with Go + WebAssembly
+
+- Started dabbling in WASM late 2020.
+- Looking to put Go code on the web for a LOGO programming interpreter. 🐢
+- Ported an apple II emulator core I maintain to WASM, and had 15 minutes of fame on [Gizmodo](https://gizmodo.com/you-can-now-revisit-the-most-popular-desktop-publishing-1847318273) for making [Apple II print shop](https://theprintshop.club/) run in a browser. 
+
+.image images/wasmps.png _ 256
+
+## 🗺️ Starting with WebAssembly (hello!)
+
+A simple Wasm program in Go: -
+
+.code hellowasm.go
+
+- Wait, that's just a Go program, right?
+
+- Well, yes. 
+
+
+## 🛠️ Building Go programs using the WASM Target
+
+- Mostly the same as normal, but we need to tell Go we are building Wasm: -
+
+.code build.sh HLshell
+
+- This tells go we are targetting WebAssembly, and also that it should use the underlying JavaScript runtime libraries as well.
+
+## 💻 Running Go Wasm programs - Command Line
+
+- At the command line, leveraging `go_exec_wasm_wrapper` (_ships_with_Go_).
+
+- This supports a few additional features, compared to running in browser (we'll get to that).
+
+.code exec.sh HLsh
+
+## 🕸️ Running Go Wasm programs - Browser
+
+Use `wasm_exec.js` (_ships_with_Go_) which provides magic glue.
+
+```
+	<script src="wasm_exec.js"></script>
+	<script type="text/javascript">
+	function fetchAndInstantiate(url, importObject) {
+	  return fetch(url).then(response =>
+		response.arrayBuffer()
+	  ).then(bytes =>
+		WebAssembly.instantiate(bytes, importObject)
+	  ).then(results =>
+		  results.instance
+	  );
+	}
+	var go = new Go();
+	var mod = fetchAndInstantiate("wasmdemo.wasm", go.importObject);
+	window.onload = function() {  
+	  mod.then(function(instance) {
+		go.run(instance);
+	  });
+	};
+	</script>
+```
+
+## 🛑 Things you can't do in the browser
+
+- Cannot **serve** network connections, or create standard network sockets. Can use something [github.com/nhooyr/websocket](https://github.com/nhooyr/websocket) or [github.com/tarndt/wasmws](https://github.com/tarndt/wasmws) for WebSockets.
+- File operations will result in an error within the browser.
+- HTTP requests are subject to the browser security rules (hello CORS!). Can [modify fetch options](https://github.com/golang/go/wiki/WebAssembly#configuring-fetch-options-while-using-nethttp) from Go.
+- No _easy_ access to the C runtime.
+- No debug, however `fmt.Println()` and `log.Println()` output to the browser console. 
+
+## ✅ Things you can do in the browser
+
+- Use most stdlib and third-party packages with the previous caveats.
+- Pass command line arguments and process them via the `flag` package.
+- Channels, Go routines, all the things! 
+
+Using [syscall/js](https://pkg.go.dev/syscall/js) gives us the ability to: -
+
+- Access and manipulate the DOM from Go.
+- Call JavaScript functions from Go.
+- Call Go functions from JavaScript.
+- Copy byte slices between JavaScript and Go.
+
+## Interacting with the DOM from Go
+
+`js.Global()` gives us access to the global javascript object. This and other values are represented by the `js.Value` type.
+
+- Details on the functions are covered in the [syscall/js](https://pkg.go.dev/syscall/js) docs.
+- Possible to `Get()`, `Set()`, `IsUndefined()`, `Int()`, 'String()', and perform a number of functions to traverse the DOM.
+- `(js.Value).Call("functionName", ...args)` allows invoking a method on a JavaScript object.
+- `js.FuncOf(name, func(this js.Value, args []js.Value) any)` allows wrapping a Go function as a `js.Value`.
+- Basic Go types have JavaScript equivalents.
+
+## 🎩 Let's expose some Go code to JavaScript
+
+.code exporttojs.go
+
+This will be available in the browser as `emojifyMyText()`.
+
+## 🎉 Pulling it all together in a very simple way
+
+**GitHub Repo:** [Web Assembly Demo on Github](https://github.com/undefinedopcode/wasmdemo)
+
+What does this do?
+- `make serve` will start a web server on [localhost:6581](http://localhost:6581)
+- `main.go` defines the `emojifyMyText()` function and exports it.
+- `index.html` contains a basic user interface with a _textarea_ and a _button_, and uses `wasm_exec.js`, loading our Wasm code.
+- Clicking **Emojify my Text** calls the JavaScript wrapped Go code, which interacts with the DOM, gets the text, and turns any emoji codes into their codepoints (using a [golang package](https://github.com/enescakir/emoji)), replacing the text in the textarea.
+
+## 💭 Some final thoughts
+
+- When calling into Go from JavaScript, you are blocking the browser thread, so use a goroutine, or keep calls short. 
+- [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) provide an excellent way to execute a core service in WASM, with UI logic handled in JavaScript/TypeScript. It's possible then to communicate between the Wasm worker and the UI using [postMessage and a message eventListener](https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage). 
+- Wasm binaries can be quite large, so be sure to serve them with compression enabled. 
+- [TinyGo](https://tinygo.org) might be an option in some cases and has [some interesting language additions](https://tinygo.org/docs/guides/webassembly/wasm) to simplify export of functions.
+- Recently, a [profiler for WebAssembly](https://github.com/stealthrocket/wzprof) in Go was released.
+
+## 🔗 Links
+
+- [Golang Wiki on WebAssembly](https://github.com/golang/go/wiki/WebAssembly)
+- [TinyGo WebAssembly Guide](https://tinygo.org/docs/guides/webassembly/)
+- [Using Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
+- [Configuring fetch options while using net/http](https://github.com/golang/go/wiki/WebAssembly#configuring-fetch-options-while-using-nethttp)
+- [WebAssembly Debugging Subgroup](https://github.com/WebAssembly/debugging) - Discussing a standard for debugging WASM.
+- [WebAssembly Code Explorer](https://wasdk.github.io/wasmcodeexplorer) - Allow visualizing of WASM structure.
+
