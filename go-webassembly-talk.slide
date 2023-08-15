@@ -14,9 +14,9 @@ april.ayres@hashicorp.com
 
 ## 👋 My history with Go + WebAssembly
 
-- Started dabbling in Wasm late 2020.
-- Looking to put Go code on the web for a LOGO programming interpreter. 🐢
-- Ported an apple II emulator core I maintain to Wasm, and had 15 minutes of fame on [Gizmodo](https://gizmodo.com/you-can-now-revisit-the-most-popular-desktop-publishing-1847318273) for making [Apple II print shop](https://theprintshop.club/) run in a browser. 
+- 🐣 Started dabbling in Wasm late 2020.
+- 🐢 Looking to put Go code on the web for a LOGO programming interpreter. I preferred using existing code rather than rewriting in JavaScript. 🐢
+- 🍎 Converted an apple II emulator core I maintain to Wasm + EBiten, and had 15 minutes of fame on [Gizmodo](https://gizmodo.com/you-can-now-revisit-the-most-popular-desktop-publishing-1847318273) for making [Apple II print shop](https://theprintshop.club/) run in a browser. 
 
 .image images/wasmps.png _ 256
 
