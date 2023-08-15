@@ -28,10 +28,30 @@ A simple Wasm program in Go: -
 
 - Wait, that's just a Go program, right?
 
-- Well, yes. 
+- Well, yes, but there are a few caveats. 
 
+## 🛑 Things you can't do in the browser
 
-## 🛠️ Building Go programs using the Wasm Target
+- Cannot **serve** network connections, or create standard network sockets. Can use something [github.com/nhooyr/websocket](https://github.com/nhooyr/websocket) or [github.com/tarndt/wasmws](https://github.com/tarndt/wasmws) for WebSockets.
+- File operations will result in an error within the browser.
+- HTTP requests are subject to the browser security rules (hello CORS!). Can [modify fetch options](https://github.com/golang/go/wiki/WebAssembly#configuring-fetch-options-while-using-nethttp) from Go.
+- No _easy_ access to the C runtime.
+- No debug, however `fmt.Println()` and `log.Println()` output to the browser console. 
+
+## ✅ Things you can do in the browser
+
+- Use most stdlib and third-party packages with the previous caveats.
+- Pass command line arguments and process them via the `flag` package.
+- Channels, Go routines, all the things! 
+
+Using [syscall/js](https://pkg.go.dev/syscall/js) gives us the ability to: -
+
+- Access and manipulate the DOM from Go.
+- Call JavaScript functions from Go.
+- Call Go functions from JavaScript.
+- Copy byte slices between JavaScript and Go.[201~]]
+
+## 🛠️  Building Go programs using the Wasm Target
 
 - Mostly the same as normal, but we need to tell Go we are building Wasm: -
 
@@ -42,12 +62,12 @@ A simple Wasm program in Go: -
 ## 💻 Running Go Wasm programs - Command Line
 
 - At the command line, leveraging `go_exec_wasm_wrapper` (_ships_with_Go_).
-
-- This supports a few additional features, compared to running in browser (we'll get to that).
+- This supports a few additional features, compared to running in browser (files, network etc).
+- The wrapper leverages `node` in order to run.
 
 .code exec.sh HLsh
 
-## 🕸️ Running Go Wasm programs - Browser
+## 🕸️  Running Go Wasm programs - Browser
 
 Use `wasm_exec.js` (_ships_with_Go_) which provides magic glue.
 
@@ -72,27 +92,6 @@ Use `wasm_exec.js` (_ships_with_Go_) which provides magic glue.
 	};
 	</script>
 ```
-
-## 🛑 Things you can't do in the browser
-
-- Cannot **serve** network connections, or create standard network sockets. Can use something [github.com/nhooyr/websocket](https://github.com/nhooyr/websocket) or [github.com/tarndt/wasmws](https://github.com/tarndt/wasmws) for WebSockets.
-- File operations will result in an error within the browser.
-- HTTP requests are subject to the browser security rules (hello CORS!). Can [modify fetch options](https://github.com/golang/go/wiki/WebAssembly#configuring-fetch-options-while-using-nethttp) from Go.
-- No _easy_ access to the C runtime.
-- No debug, however `fmt.Println()` and `log.Println()` output to the browser console. 
-
-## ✅ Things you can do in the browser
-
-- Use most stdlib and third-party packages with the previous caveats.
-- Pass command line arguments and process them via the `flag` package.
-- Channels, Go routines, all the things! 
-
-Using [syscall/js](https://pkg.go.dev/syscall/js) gives us the ability to: -
-
-- Access and manipulate the DOM from Go.
-- Call JavaScript functions from Go.
-- Call Go functions from JavaScript.
-- Copy byte slices between JavaScript and Go.
 
 ## 🧱 Interacting with the DOM from Go
 
